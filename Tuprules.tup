@@ -2,8 +2,9 @@ CC = g++
 
 CCFLAGS += -pthread
 CCFLAGS += -std=c++11
-CCFLAGS += -I/usr/local/include -I/usr/include/python2.7 -I/usr/include
-CCFLAGS += -Wall
+CCFLAGS += -I/home/osushkov/Programming/boost_1_64_0
+CCFLAGS += -I/usr/include/python2.7
+CCFLAGS += -Wall -Wno-deprecated-declarations
 
 ifdef RELEASE
   CCFLAGS += -O3
@@ -14,7 +15,8 @@ ifdef DEBUG
   CLFLAGS += -pg
 endif
 
-CLFLAGS += -L/usr/local/lib -L/usr/lib -L/usr/lib/python2.7/config
-CLFLAGS += -lboost_python-py27 -lpython2.7
+CLFLAGS += -L/home/osushkov/Programming/boost_1_64_0/stage/lib
+CLFLAGS += -L/usr/lib/python2.7/config
+CLFLAGS += -lboost_python -lboost_numpy -lpython2.7
 CLFLAGS += -pthread
 CLFLAGS += -std=c++11
