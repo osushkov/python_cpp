@@ -60,6 +60,7 @@ class Learner(LearnerInstance):
 
         self.data_x, self.data_y = createSampleData(10000)
 
+
     def BuildGraph(self):
         self.total_iters = 0
         self.graph = tf.Graph()
@@ -89,6 +90,10 @@ class Learner(LearnerInstance):
                                            feed_dict={self.xv: batch_x, self.yv: batch_y})
                 self.total_iters += 1
                 print("iter: " + str(self.total_iters) + " loss: " + str(l))
+
+    def GetModelParams(self):
+        return [np.array([1.0, 2.0, 3.0]), np.array([10.0, 20.0, 30.0])]
+
 
 # l = Learner()
 # l.BuildGraph()

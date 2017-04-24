@@ -52,3 +52,8 @@ std::string PythonUtil::ParseException(void) {
 
   return ret;
 }
+
+std::ostream &operator<<(std::ostream &stream, const np::ndarray &array) {
+  stream << bp::extract<char const *>(bp::str(array));
+  return stream;
+}

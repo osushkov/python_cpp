@@ -2,6 +2,7 @@
 
 #include "util/Common.hpp"
 #include <boost/python/numpy.hpp>
+#include <vector>
 
 namespace np = boost::python::numpy;
 
@@ -16,7 +17,7 @@ public:
 
   void BuildGraph(void);
   void LearnIterations(unsigned iters);
-  // np::ndarray doubled(void);
+  std::vector<np::ndarray> GetModelParams(void);
 
 private:
   struct TFLearnerImpl;

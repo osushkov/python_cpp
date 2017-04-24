@@ -3,7 +3,10 @@
 
 #include <boost/python.hpp>
 #include <boost/python/numpy.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/stl_iterator.hpp>
 #include <iostream>
+#include <vector>
 
 namespace np = boost::python::numpy;
 namespace bp = boost::python;
@@ -15,7 +18,7 @@ public:
 
   virtual void BuildGraph(void) = 0;
   virtual void LearnIterations(unsigned iters) = 0;
-  // virtual np::ndarray doubled(void) = 0;
+  virtual std::vector<np::ndarray> GetModelParams(void) = 0;
 };
 
 class PyLearnerInstance final : public LearnerInstance,
@@ -29,11 +32,12 @@ public:
     get_override("LearnIterations")(iters);
   }
 
-  // np::ndarray doubled(void) override { return get_override("doubled")(); }
+  std::vector<np::ndarray> GetModelParams(void) override { return get_override("GetModelParams")(); }
 };
 
 BOOST_PYTHON_MODULE(LearnerFramework) {
   np::initialize();
+
   bp::class_<PyLearnerInstance, boost::noncopyable>("LearnerInstance");
 }
 
@@ -75,6 +79,15 @@ struct TFLearner::TFLearnerImpl {
     }
   }
 
+  std::vector<np::ndarray> GetModelParams(void) {
+    try {
+      return PythonUtil::ToStdVector<np::ndarray>(learner.attr("GetModelParams")());
+    } catch (const bp::error_already_set &e) {
+      std::cerr << std::endl << PythonUtil::ParseException() << std::endl;
+      throw e;
+    }
+  }
+
   // np::ndarray doubled(void) {
   //   return bp::extract<np::ndarray>(strategy.attr("doubled")());
   // }
@@ -87,4 +100,8 @@ void TFLearner::BuildGraph(void) { impl->BuildGraph(); }
 
 void TFLearner::LearnIterations(unsigned iters) {
   impl->LearnIterations(iters);
+}
+
+std::vector<np::ndarray> TFLearner::GetModelParams(void) {
+  return impl->GetModelParams();
 }

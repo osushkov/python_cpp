@@ -1,5 +1,6 @@
 
 #include "TFLearner.hpp"
+#include "PythonUtil.hpp"
 
 #include <boost/python/numpy.hpp>
 #include <iostream>
@@ -7,10 +8,7 @@
 
 using namespace std;
 
-std::ostream &operator<<(std::ostream &stream, const np::ndarray &array) {
-  stream << boost::python::extract<char const *>(boost::python::str(array));
-  return stream;
-}
+
 
 int main(int argc, char **argv) {
   std::cout << "hello world!!" << std::endl;
@@ -18,9 +16,14 @@ int main(int argc, char **argv) {
   TFLearner learner;
   learner.BuildGraph();
 
-  for (unsigned i = 0; i < 10000; i++) {
-    learner.LearnIterations(1);
+  auto xa = learner.GetModelParams();
+  for (np::ndarray x : xa) {
+    std::cout << x << std::endl;
   }
+
+  // for (unsigned i = 0; i < 10000; i++) {
+  //   learner.LearnIterations(1);
+  // }
   // std::cout << learner.generate() << std::endl;
   // np::initialize();
 
