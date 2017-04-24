@@ -12,4 +12,6 @@ void Initialise(void);
 
 bp::object Import(const std::string &module, const std::string &path,
                   bp::object &globals);
+
+std::string ParseException(void);
 }

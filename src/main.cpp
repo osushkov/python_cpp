@@ -17,7 +17,10 @@ int main(int argc, char **argv) {
 
   TFLearner learner;
   learner.BuildGraph();
-  learner.LearnIterations(5);
+
+  for (unsigned i = 0; i < 10000; i++) {
+    learner.LearnIterations(1);
+  }
   // std::cout << learner.generate() << std::endl;
   // np::initialize();
 

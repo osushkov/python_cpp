@@ -3,6 +3,7 @@
 
 #include <boost/python.hpp>
 #include <boost/python/numpy.hpp>
+#include <iostream>
 
 namespace np = boost::python::numpy;
 namespace bp = boost::python;
@@ -40,21 +41,38 @@ struct TFLearner::TFLearnerImpl {
   bp::object learner;
 
   TFLearnerImpl() {
-    PythonUtil::Initialise();
-    PyImport_AppendInittab("LearnerFramework", &initLearnerFramework);
+    try {
+      PythonUtil::Initialise();
+      PyImport_AppendInittab("LearnerFramework", &initLearnerFramework);
 
-    bp::object main = bp::import("__main__");
-    bp::object globals = main.attr("__dict__");
-    bp::object module =
-        PythonUtil::Import("strategy", "src/python/learner.py", globals);
-    bp::object Learner = module.attr("Learner");
-    learner = Learner();
+      bp::object main = bp::import("__main__");
+      bp::object globals = main.attr("__dict__");
+      bp::object module =
+          PythonUtil::Import("strategy", "src/python/learner.py", globals);
+      bp::object Learner = module.attr("Learner");
+      learner = Learner();
+    } catch (const bp::error_already_set &e) {
+      std::cerr << std::endl << PythonUtil::ParseException() << std::endl;
+      throw e;
+    }
   }
 
-  void BuildGraph(void) { learner.attr("BuildGraph")(); }
+  void BuildGraph(void) {
+    try {
+      learner.attr("BuildGraph")();
+    } catch (const bp::error_already_set &e) {
+      std::cerr << std::endl << PythonUtil::ParseException() << std::endl;
+      throw e;
+    }
+  }
 
   void LearnIterations(unsigned iters) {
-    learner.attr("LearnIterations")(iters);
+    try {
+      learner.attr("LearnIterations")(iters);
+    } catch (const bp::error_already_set &e) {
+      std::cerr << std::endl << PythonUtil::ParseException() << std::endl;
+      throw e;
+    }
   }
 
   // np::ndarray doubled(void) {
