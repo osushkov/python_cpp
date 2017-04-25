@@ -3,9 +3,10 @@
 
 #include <boost/python.hpp>
 #include <boost/python/numpy.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/stl_iterator.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <iostream>
+#include <mutex>
 #include <vector>
 
 namespace np = boost::python::numpy;
@@ -32,7 +33,9 @@ public:
     get_override("LearnIterations")(iters);
   }
 
-  std::vector<np::ndarray> GetModelParams(void) override { return get_override("GetModelParams")(); }
+  std::vector<np::ndarray> GetModelParams(void) override {
+    return get_override("GetModelParams")();
+  }
 };
 
 BOOST_PYTHON_MODULE(LearnerFramework) {
@@ -43,8 +46,10 @@ BOOST_PYTHON_MODULE(LearnerFramework) {
 
 struct TFLearner::TFLearnerImpl {
   bp::object learner;
+  std::mutex m;
 
   TFLearnerImpl() {
+    std::lock_guard<std::mutex> l(m);
     try {
       PythonUtil::Initialise();
       PyImport_AppendInittab("LearnerFramework", &initLearnerFramework);
@@ -62,6 +67,8 @@ struct TFLearner::TFLearnerImpl {
   }
 
   void BuildGraph(void) {
+    std::lock_guard<std::mutex> l(m);
+
     try {
       learner.attr("BuildGraph")();
     } catch (const bp::error_already_set &e) {
@@ -71,6 +78,8 @@ struct TFLearner::TFLearnerImpl {
   }
 
   void LearnIterations(unsigned iters) {
+    std::lock_guard<std::mutex> l(m);
+
     try {
       learner.attr("LearnIterations")(iters);
     } catch (const bp::error_already_set &e) {
@@ -80,17 +89,16 @@ struct TFLearner::TFLearnerImpl {
   }
 
   std::vector<np::ndarray> GetModelParams(void) {
+    std::lock_guard<std::mutex> l(m);
+
     try {
-      return PythonUtil::ToStdVector<np::ndarray>(learner.attr("GetModelParams")());
+      return PythonUtil::ToStdVector<np::ndarray>(
+          learner.attr("GetModelParams")());
     } catch (const bp::error_already_set &e) {
       std::cerr << std::endl << PythonUtil::ParseException() << std::endl;
       throw e;
     }
   }
-
-  // np::ndarray doubled(void) {
-  //   return bp::extract<np::ndarray>(strategy.attr("doubled")());
-  // }
 };
 
 TFLearner::TFLearner() : impl(new TFLearnerImpl()) {}

@@ -17,7 +17,7 @@ public:
 
   void BuildGraph(void);
   void LearnIterations(unsigned iters);
-  std::vector<np::ndarray> GetModelParams(void);
+  vector<np::ndarray> GetModelParams(void);
 
 private:
   struct TFLearnerImpl;

@@ -1,14 +1,12 @@
 
-#include "TFLearner.hpp"
 #include "PythonUtil.hpp"
+#include "TFLearner.hpp"
 
 #include <boost/python/numpy.hpp>
 #include <iostream>
 #include <vector>
 
 using namespace std;
-
-
 
 int main(int argc, char **argv) {
   std::cout << "hello world!!" << std::endl;
