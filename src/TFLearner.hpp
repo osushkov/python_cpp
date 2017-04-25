@@ -15,7 +15,6 @@ public:
   TFLearner(const TFLearner &other) = delete;
   TFLearner &operator=(TFLearner &other) = delete;
 
-  void BuildGraph(void);
   void LearnIterations(unsigned iters);
   vector<np::ndarray> GetModelParams(void);
 

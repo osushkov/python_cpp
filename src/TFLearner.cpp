@@ -17,7 +17,6 @@ public:
   LearnerInstance() = default;
   virtual ~LearnerInstance() = default;
 
-  virtual void BuildGraph(void) = 0;
   virtual void LearnIterations(unsigned iters) = 0;
   virtual std::vector<np::ndarray> GetModelParams(void) = 0;
 };
@@ -26,8 +25,6 @@ class PyLearnerInstance final : public LearnerInstance,
                                 public bp::wrapper<LearnerInstance> {
 public:
   using LearnerInstance::LearnerInstance;
-
-  void BuildGraph(void) override { get_override("BuildGraph")(); }
 
   void LearnIterations(unsigned iters) override {
     get_override("LearnIterations")(iters);
@@ -57,20 +54,9 @@ struct TFLearner::TFLearnerImpl {
       bp::object main = bp::import("__main__");
       bp::object globals = main.attr("__dict__");
       bp::object module =
-          PythonUtil::Import("strategy", "src/python/learner.py", globals);
+          PythonUtil::Import("learner", "src/python/learner.py", globals);
       bp::object Learner = module.attr("Learner");
       learner = Learner();
-    } catch (const bp::error_already_set &e) {
-      std::cerr << std::endl << PythonUtil::ParseException() << std::endl;
-      throw e;
-    }
-  }
-
-  void BuildGraph(void) {
-    std::lock_guard<std::mutex> l(m);
-
-    try {
-      learner.attr("BuildGraph")();
     } catch (const bp::error_already_set &e) {
       std::cerr << std::endl << PythonUtil::ParseException() << std::endl;
       throw e;
@@ -103,8 +89,6 @@ struct TFLearner::TFLearnerImpl {
 
 TFLearner::TFLearner() : impl(new TFLearnerImpl()) {}
 TFLearner::~TFLearner() = default;
-
-void TFLearner::BuildGraph(void) { impl->BuildGraph(); }
 
 void TFLearner::LearnIterations(unsigned iters) {
   impl->LearnIterations(iters);

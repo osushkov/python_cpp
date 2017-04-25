@@ -20,48 +20,17 @@ def makeBatch(batch_size, data_x, data_y):
     return data_x[:,indices], data_y[:,indices]
 
 
-# plt.scatter(xs, ys)
-# plt.show()
-
-# batch_size = 1000
-#
-# graph = tf.Graph()
-# with graph.as_default():
-#     av = tf.Variable(np.random.uniform(-10.0, 10.0, 1).reshape(1, 1), dtype=tf.float32)
-#     bv = tf.Variable(np.random.uniform(-10.0, 10.0, 1).reshape(1, 1), dtype=tf.float32)
-#
-#     xv = tf.placeholder(tf.float32, shape=(1, batch_size))
-#     yv = tf.placeholder(tf.float32, shape=(1, batch_size))
-#     ypred = tf.add(tf.matmul(av, xv), bv)
-#
-#     loss = tf.reduce_mean(tf.squared_difference(ypred, yv))
-#     opt = tf.train.AdamOptimizer().minimize(loss)
-#
-#     init_op = tf.global_variables_initializer()
-#
-# sess = tf.Session(graph=graph)
-# with sess.as_default():
-#     sess.run(init_op)
-#
-#     data_x, data_y = createSampleData(10000)
-#     for i in range(10000):
-#         batch_x, batch_y = makeBatch(batch_size, data_x, data_y)
-#         _, l, a, b = sess.run([opt, loss, av, bv], feed_dict={xv: batch_x, yv: batch_y})
-#         print("iter: " + str(i) + " loss: " + str(l))
-#     print(a, b)
-
 batch_size = 1000
 
 class Learner(LearnerInstance):
 # class Learner:
     def __init__(self):
-        self.graph = None
         self.sess = None
-
         self.data_x, self.data_y = createSampleData(10000)
 
+        self._buildGraph()
 
-    def BuildGraph(self):
+    def _buildGraph(self):
         self.total_iters = 0
         self.graph = tf.Graph()
         with self.graph.as_default():
@@ -93,8 +62,3 @@ class Learner(LearnerInstance):
 
     def GetModelParams(self):
         return [np.array([1.0, 2.0, 3.0]), np.array([10.0, 20.0, 30.0])]
-
-
-# l = Learner()
-# l.BuildGraph()
-# l.LearnIterations(10000)

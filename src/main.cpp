@@ -1,8 +1,10 @@
 
 #include "PythonUtil.hpp"
 #include "TFLearner.hpp"
+#include "TFModel.hpp"
 
 #include <boost/python/numpy.hpp>
+#include <cstdlib>
 #include <iostream>
 #include <vector>
 
@@ -12,16 +14,18 @@ int main(int argc, char **argv) {
   std::cout << "hello world!!" << std::endl;
 
   TFLearner learner;
-  learner.BuildGraph();
-
-  auto xa = learner.GetModelParams();
-  for (np::ndarray x : xa) {
-    std::cout << x << std::endl;
+  TFModel model;
+  for (unsigned i = 0; i < 1000; i++) {
+    learner.LearnIterations(10);
+    model.SetModelParams(learner.GetModelParams());
+    getchar();
   }
 
-  // for (unsigned i = 0; i < 10000; i++) {
-  //   learner.LearnIterations(1);
+  // auto xa = learner.GetModelParams();
+  // for (np::ndarray x : xa) {
+  //   std::cout << x << std::endl;
   // }
+
   // std::cout << learner.generate() << std::endl;
   // np::initialize();
 
