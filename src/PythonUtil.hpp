@@ -1,8 +1,9 @@
 
 #include <boost/python.hpp>
 #include <boost/python/numpy.hpp>
-#include <string>
+#include <iostream>
 #include <ostream>
+#include <string>
 
 namespace np = boost::python::numpy;
 namespace bp = boost::python;
@@ -10,6 +11,8 @@ namespace bp = boost::python;
 namespace PythonUtil {
 
 void Initialise(void);
+bp::object &GetLearnerModule(void);
+bp::object &GetModelModule(void);
 
 bp::object Import(const std::string &module, const std::string &path,
                   bp::object &globals);
@@ -22,19 +25,7 @@ inline std::vector<T> ToStdVector(const bp::object &iterable) {
                         bp::stl_input_iterator<T>());
 }
 
-np::ndarray ArrayFromVector(const std::vector<float>& data);
-
-class GIL {
-public:
-  GIL() { state_ = PyGILState_Ensure(); }
-  ~GIL() { PyGILState_Release(state_); }
-
-  GIL(const GIL &) = delete;
-  GIL &operator=(const GIL &) = delete;
-
-private:
-  PyGILState_STATE state_;
-};
+np::ndarray ArrayFromVector(const std::vector<float> &data);
 }
 
 std::ostream &operator<<(std::ostream &stream, const np::ndarray &array);
