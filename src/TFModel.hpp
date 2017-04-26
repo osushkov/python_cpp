@@ -8,7 +8,7 @@ namespace np = boost::python::numpy;
 
 class TFModel {
 public:
-  TFModel();
+  TFModel(unsigned batchSize);
   virtual ~TFModel();
 
   np::ndarray Inference(const np::ndarray &input);

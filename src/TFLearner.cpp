@@ -8,6 +8,7 @@
 #include <iostream>
 #include <mutex>
 #include <vector>
+#include <iostream>
 
 namespace np = boost::python::numpy;
 namespace bp = boost::python;
@@ -37,6 +38,7 @@ public:
 
 BOOST_PYTHON_MODULE(LearnerFramework) {
   np::initialize();
+  PyEval_InitThreads();
 
   bp::class_<PyLearnerInstance, boost::noncopyable>("LearnerInstance");
 }
@@ -64,8 +66,11 @@ struct TFLearner::TFLearnerImpl {
   }
 
   void LearnIterations(unsigned iters) {
+    std::cout << "waiting to learn" << std::endl;
     std::lock_guard<std::mutex> l(m);
-
+    std::cout << "waiting for GIL" << std::endl;
+    PythonUtil::GIL pl;
+    std::cout << "got GIL" << std::endl;
     try {
       learner.attr("LearnIterations")(iters);
     } catch (const bp::error_already_set &e) {
@@ -76,7 +81,7 @@ struct TFLearner::TFLearnerImpl {
 
   std::vector<np::ndarray> GetModelParams(void) {
     std::lock_guard<std::mutex> l(m);
-
+    PythonUtil::GIL pl;
     try {
       return PythonUtil::ToStdVector<np::ndarray>(
           learner.attr("GetModelParams")());

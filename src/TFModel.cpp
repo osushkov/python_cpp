@@ -9,20 +9,19 @@
 #include <iostream>
 #include <mutex>
 #include <vector>
+#include <cassert>
 
 namespace np = boost::python::numpy;
 namespace bp = boost::python;
 
-typedef vector<np::ndarray> MyList;
+using ArrayList = vector<np::ndarray>;
 
 class ModelInstance {
 public:
-  ModelInstance() = default;
   virtual ~ModelInstance() = default;
 
-  virtual void BuildGraph(void) = 0;
   virtual np::ndarray Inference(const np::ndarray &input) = 0;
-  virtual void SetModelParams(MyList params) = 0;
+  virtual void SetModelParams(const vector<np::ndarray> &params) = 0;
 };
 
 class PyModelInstance final : public ModelInstance,
@@ -30,18 +29,18 @@ class PyModelInstance final : public ModelInstance,
 public:
   using ModelInstance::ModelInstance;
 
-  void BuildGraph(void) override { get_override("BuildGraph")(); }
-
   np::ndarray Inference(const np::ndarray &input) {
     return get_override("Inference")(input);
   }
 
-  void SetModelParams(MyList params) { get_override("SetModelParams")(params); }
+  void SetModelParams(const vector<np::ndarray> &params) { get_override("SetModelParams")(params); }
 };
 
 BOOST_PYTHON_MODULE(ModelFramework) {
   np::initialize();
-  bp::class_<MyList>("MyList").def(bp::vector_indexing_suite<MyList, true>());
+  PyEval_InitThreads();
+  
+  bp::class_<ArrayList>("ArrayList").def(bp::vector_indexing_suite<ArrayList, true>());
   bp::class_<PyModelInstance, boost::noncopyable>("ModelInstance");
 }
 
@@ -49,7 +48,9 @@ struct TFModel::TFModelImpl {
   bp::object model;
   std::mutex m;
 
-  TFModelImpl() {
+  TFModelImpl(unsigned batchSize) {
+    assert(batchSize >= 1);
+
     std::lock_guard<std::mutex> l(m);
     try {
       PythonUtil::Initialise();
@@ -60,7 +61,7 @@ struct TFModel::TFModelImpl {
       bp::object module =
           PythonUtil::Import("model", "src/python/model.py", globals);
       bp::object Model = module.attr("Model");
-      model = Model();
+      model = Model(batchSize);
     } catch (const bp::error_already_set &e) {
       std::cerr << std::endl << PythonUtil::ParseException() << std::endl;
       throw e;
@@ -77,7 +78,7 @@ struct TFModel::TFModelImpl {
     }
   }
 
-  void SetModelParams(MyList params) {
+  void SetModelParams(const vector<np::ndarray> &params) {
     std::lock_guard<std::mutex> l(m);
     try {
       // boost::python::call<double>
@@ -89,7 +90,7 @@ struct TFModel::TFModelImpl {
   }
 };
 
-TFModel::TFModel() : impl(new TFModelImpl()) {}
+TFModel::TFModel(unsigned batchSize) : impl(new TFModelImpl(batchSize)) {}
 TFModel::~TFModel() = default;
 
 np::ndarray TFModel::Inference(const np::ndarray &input) {

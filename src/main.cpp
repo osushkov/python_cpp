@@ -7,63 +7,46 @@
 #include <cstdlib>
 #include <iostream>
 #include <vector>
+#include <thread>
+#include <atomic>
 
 using namespace std;
 
 int main(int argc, char **argv) {
+  PythonUtil::Initialise();
   std::cout << "hello world!!" << std::endl;
 
-  TFLearner learner;
-  TFModel model;
-  for (unsigned i = 0; i < 1000; i++) {
-    learner.LearnIterations(10);
-    model.SetModelParams(learner.GetModelParams());
-    getchar();
-  }
+  vector<float> woo{1.0f, 5.0f, 6.0f, 3.2f, 10.0f};
+  std::cout << PythonUtil::ArrayFromVector(woo) << std::endl;
 
-  // auto xa = learner.GetModelParams();
-  // for (np::ndarray x : xa) {
-  //   std::cout << x << std::endl;
+  TFLearner learner;
+  TFModel model(5);
+
+  atomic<int> learnIters(0);
+  thread learnThread([&learner, &learnIters]{
+    for (unsigned i = 0; i < 1000; i++) {
+      std::cout << "li: " << i << std::endl;
+      learner.LearnIterations(10);
+      learnIters++;
+    }
+  });
+
+  // int iters;
+  // getchar();
+  // while((iters = learnIters.load()) < 1000) {
+    // model.SetModelParams(learner.GetModelParams());
+    std::cout << learner.GetModelParams()[0] << std::endl;
+  //   std::cout << iters << ": " << model.Inference(PythonUtil::ArrayFromVector(woo)) << std::endl;
   // }
 
-  // std::cout << learner.generate() << std::endl;
-  // np::initialize();
+  learnThread.join();
 
-  // PyImport_AppendInittab("StrategyFramework", &initStrategyFramework);
-  //
-  // bp::object main = bp::import("__main__");
-  // bp::object globals = main.attr("__dict__");
-  // bp::object module = import("strategy", "src/strategy.py", globals);
-  // bp::object Strategy = module.attr("Strategy");
-  // bp::object strategy = Strategy();
-  //
-  // vector<float> vals{1.0f, 2.0f, 3.0f};
-  //
-  // strategy.attr("eval")(vals);
-  // strategy.attr("eval")(vals);
-  //
-  // bp::object r = strategy.attr("generate")();
-  // int size = bp::extract<int>(r.attr("size"));
-  // std::cout << "b: " << size << std::endl;
-  //
-  // np::ndarray ndr = bp::extract<np::ndarray>(r);
-  // std::cout << "wooo: " << bp::extract<char const *>(bp::str(ndr)) <<
-  // std::endl;
-  //
-  // strategy.attr("store")(ndr);
-  // ndr = bp::extract<np::ndarray>(strategy.attr("doubled")());
-  //
-  // std::cout << "wooo: " << bp::extract<char const *>(bp::str(ndr)) <<
-  // std::endl;
-  //
-  // PyStrategyInstance pyStrat;
-  // ndr = pyStrat.generate();
-  // std::cout << "wooo2: " << bp::extract<char const *>(bp::str(ndr))
-  //           << std::endl;
-  //
-  // // for (auto v : b) {
-  // //   std::cout << "v: " << v << std::endl;
-  // // }
+  // for (unsigned i = 0; i < 1000; i++) {
+    // learner.LearnIterations(10);
+    // model.SetModelParams(learner.GetModelParams());
+    // std::cout << model.Inference(PythonUtil::ArrayFromVector(woo)) << std::endl;
+    // getchar();
+  // }
 
   std::cout << "bye world" << std::endl;
   return 0;

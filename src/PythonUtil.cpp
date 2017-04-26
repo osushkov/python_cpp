@@ -5,7 +5,11 @@
 std::once_flag initialiseFlag;
 
 void PythonUtil::Initialise(void) {
-  std::call_once(initialiseFlag, []() { Py_Initialize(); });
+  std::call_once(initialiseFlag, []() {
+    Py_Initialize();
+    PyEval_InitThreads();
+    np::initialize();
+  });
 }
 
 bp::object PythonUtil::Import(const std::string &module,
@@ -51,6 +55,14 @@ std::string PythonUtil::ParseException(void) {
   }
 
   return ret;
+}
+
+np::ndarray PythonUtil::ArrayFromVector(const std::vector<float> &data) {
+  bp::tuple shape = bp::make_tuple(data.size());
+  bp::tuple stride = bp::make_tuple(sizeof(float));
+
+  return np::from_data(data.data(), np::dtype::get_builtin<float>(),
+                       shape, stride, bp::object());
 }
 
 std::ostream &operator<<(std::ostream &stream, const np::ndarray &array) {

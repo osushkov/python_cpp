@@ -58,7 +58,8 @@ class Learner(LearnerInstance):
                 _, l, a, b = self.sess.run([self.opt, self.loss, self.av, self.bv],
                                            feed_dict={self.xv: batch_x, self.yv: batch_y})
                 self.total_iters += 1
-                print("iter: " + str(self.total_iters) + " loss: " + str(l))
+                # print("iter: " + str(self.total_iters) + " loss: " + str(l))
+
 
     def GetModelParams(self):
-        return [np.array([1.0, 2.0, 3.0]), np.array([10.0, 20.0, 30.0])]
+        return [np.array([[5.0]]), np.array([[7.0]])]
