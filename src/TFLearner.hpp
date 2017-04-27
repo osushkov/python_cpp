@@ -1,9 +1,11 @@
 #pragma once
 
 #include "util/Common.hpp"
+#include <boost/python.hpp>
 #include <boost/python/numpy.hpp>
 #include <vector>
 
+namespace bp = boost::python;
 namespace np = boost::python::numpy;
 
 class TFLearner {
@@ -16,7 +18,7 @@ public:
   TFLearner &operator=(TFLearner &other) = delete;
 
   void LearnIterations(unsigned iters);
-  vector<np::ndarray> GetModelParams(void);
+  bp::object GetModelParams(void);
 
 private:
   struct TFLearnerImpl;

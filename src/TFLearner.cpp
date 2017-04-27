@@ -34,10 +34,9 @@ struct TFLearner::TFLearnerImpl {
     }
   }
 
-  std::vector<np::ndarray> GetModelParams(void) {
+  bp::object GetModelParams(void) {
     try {
-      return PythonUtil::ToStdVector<np::ndarray>(
-          learner.attr("GetModelParams")());
+      return learner.attr("GetModelParams")();
     } catch (const bp::error_already_set &e) {
       std::cerr << std::endl << PythonUtil::ParseException() << std::endl;
       throw e;
@@ -52,6 +51,6 @@ void TFLearner::LearnIterations(unsigned iters) {
   impl->LearnIterations(iters);
 }
 
-std::vector<np::ndarray> TFLearner::GetModelParams(void) {
+bp::object TFLearner::GetModelParams(void) {
   return impl->GetModelParams();
 }

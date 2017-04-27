@@ -1,7 +1,6 @@
 
 from LearnerFramework import *
 import numpy as np
-import matplotlib.pyplot as plt
 import tensorflow as tf
 
 def createSampleData(samples):
@@ -27,11 +26,12 @@ class Learner(LearnerInstance):
     def __init__(self):
         self.sess = None
         self.data_x, self.data_y = createSampleData(10000)
+        self.model_params = [np.array([[0.0]]), np.array([[7.0]])]
 
         self._buildGraph()
 
+
     def _buildGraph(self):
-        self.total_iters = 0
         self.graph = tf.Graph()
         with self.graph.as_default():
             self.av = tf.Variable(np.random.uniform(-10.0, 10.0, 1).reshape(1, 1), dtype=tf.float32)
@@ -42,7 +42,6 @@ class Learner(LearnerInstance):
             self.ypred = tf.add(tf.matmul(self.av, self.xv), self.bv)
 
             self.loss = tf.reduce_mean(tf.squared_difference(self.ypred, self.yv))
-            # self.opt = tf.train.AdamOptimizer().minimize(self.loss)
             self.opt = tf.train.GradientDescentOptimizer(0.01).minimize(self.loss)
             self.init_op = tf.global_variables_initializer()
 
@@ -55,11 +54,14 @@ class Learner(LearnerInstance):
         with self.sess.as_default():
             for i in range(iters):
                 batch_x, batch_y = makeBatch(batch_size, self.data_x, self.data_y)
-                _, l, a, b = self.sess.run([self.opt, self.loss, self.av, self.bv],
+                _, p0, p1 = self.sess.run([self.opt, self.av, self.bv],
                                            feed_dict={self.xv: batch_x, self.yv: batch_y})
-                self.total_iters += 1
-                # print("iter: " + str(self.total_iters) + " loss: " + str(l))
+        self.model_params = [p0, p1]
 
 
     def GetModelParams(self):
-        return [np.array([[5.0]]), np.array([[7.0]])]
+        return self.model_params
+
+
+# l = Learner()
+# l.LearnIterations(100)

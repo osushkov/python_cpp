@@ -19,7 +19,7 @@ public:
   virtual ~LearnerInstance() = default;
 
   virtual void LearnIterations(unsigned iters) = 0;
-  virtual std::vector<np::ndarray> GetModelParams(void) = 0;
+  virtual bp::object GetModelParams(void) = 0;
 };
 
 class PyLearnerInstance final : public LearnerInstance,
@@ -31,7 +31,7 @@ public:
     get_override("LearnIterations")(iters);
   }
 
-  std::vector<np::ndarray> GetModelParams(void) override {
+  bp::object GetModelParams(void) override {
     return get_override("GetModelParams")();
   }
 };
@@ -48,7 +48,7 @@ public:
   virtual ~ModelInstance() = default;
 
   virtual np::ndarray Inference(const np::ndarray &input) = 0;
-  virtual void SetModelParams(const vector<np::ndarray> &params) = 0;
+  virtual void SetModelParams(bp::object params) = 0;
 };
 
 class PyModelInstance final : public ModelInstance,
@@ -60,7 +60,7 @@ public:
     return get_override("Inference")(input);
   }
 
-  void SetModelParams(const vector<np::ndarray> &params) {
+  void SetModelParams(bp::object params) {
     get_override("SetModelParams")(params);
   }
 };
@@ -68,8 +68,8 @@ public:
 BOOST_PYTHON_MODULE(ModelFramework) {
   np::initialize();
 
-  bp::class_<ArrayList>("ArrayList")
-      .def(bp::vector_indexing_suite<ArrayList, true>());
+  // bp::class_<ArrayList>("ArrayList")
+  //     .def(bp::vector_indexing_suite<ArrayList>());
   bp::class_<PyModelInstance, boost::noncopyable>("ModelInstance");
 }
 
@@ -95,17 +95,23 @@ bp::object &PythonUtil::GetModelModule(void) { return modelModule; }
 
 bp::object PythonUtil::Import(const std::string &module,
                               const std::string &path, bp::object &globals) {
-  bp::dict locals;
-  locals["module_name"] = module;
-  locals["path"] = path;
+  try {
+    bp::dict locals;
+    locals["module_name"] = module;
+    locals["path"] = path;
 
-  bp::exec("import imp\n"
-           "import sys\n"
-           "sys.path.append('src/python')\n"
-           "new_module = imp.load_module(module_name, open(path), path, ('py', "
-           "'U', imp.PY_SOURCE))\n",
-           globals, locals);
-  return locals["new_module"];
+    bp::exec(
+        "import imp\n"
+        "import sys\n"
+        "sys.argv = [module_name]\n"
+        "new_module = imp.load_module(module_name, open(path), path, ('py', "
+        "'U', imp.PY_SOURCE))\n",
+        globals, locals);
+    return locals["new_module"];
+  } catch (const bp::error_already_set &e) {
+    std::cerr << std::endl << PythonUtil::ParseException() << std::endl;
+    throw e;
+  }
 }
 
 std::string PythonUtil::ParseException(void) {

@@ -1,9 +1,11 @@
 #pragma once
 
 #include "util/Common.hpp"
+#include <boost/python.hpp>
 #include <boost/python/numpy.hpp>
 #include <vector>
 
+namespace bp = boost::python;
 namespace np = boost::python::numpy;
 
 class TFModel {
@@ -12,7 +14,7 @@ public:
   virtual ~TFModel();
 
   np::ndarray Inference(const np::ndarray &input);
-  void SetModelParams(const vector<np::ndarray> &params);
+  void SetModelParams(bp::object params);
 
 private:
   struct TFModelImpl;

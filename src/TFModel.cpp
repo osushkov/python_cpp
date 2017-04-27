@@ -38,7 +38,7 @@ struct TFModel::TFModelImpl {
     }
   }
 
-  void SetModelParams(const vector<np::ndarray> &params) {
+  void SetModelParams(bp::object params) {
     try {
       model.attr("SetModelParams")(params);
     } catch (const bp::error_already_set &e) {
@@ -55,6 +55,6 @@ np::ndarray TFModel::Inference(const np::ndarray &input) {
   return impl->Inference(input);
 }
 
-void TFModel::SetModelParams(const vector<np::ndarray> &params) {
+void TFModel::SetModelParams(bp::object params) {
   impl->SetModelParams(params);
 }
