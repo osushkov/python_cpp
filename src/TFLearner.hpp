@@ -2,11 +2,8 @@
 
 #include "util/Common.hpp"
 #include <boost/python.hpp>
-#include <boost/python/numpy.hpp>
-#include <vector>
 
 namespace bp = boost::python;
-namespace np = boost::python::numpy;
 
 class TFLearner {
 public:

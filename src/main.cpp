@@ -5,12 +5,8 @@
 #include "TFModel.hpp"
 
 #include <atomic>
-#include <boost/python/numpy.hpp>
-#include <cstdlib>
 #include <iostream>
 #include <thread>
-#include <vector>
-#include <chrono>
 
 using namespace std;
 
@@ -18,33 +14,29 @@ static constexpr unsigned TOTAL_ITERS = 1000;
 
 int main(int argc, char **argv) {
   PythonUtil::Initialise();
-  PySys_SetArgv(argc, argv);
-  
-  PythonMainContext mainCtx;
-  PythonThreadContext thread0Ctx(mainCtx);
-  PythonThreadContext thread1Ctx(mainCtx);
 
   TFLearner learner;
   TFModel model(5);
 
-  atomic<int> learnIters(0);
-  thread learnThread([&learner, &learnIters, &thread0Ctx] {
+  atomic<unsigned> learnIters(0);
+  thread learnThread([&learner, &learnIters] {
+    PythonThreadContext threadCtx(PythonUtil::GlobalContext());
     for (unsigned i = 0; i < TOTAL_ITERS; i++) {
-      PythonContextLock pl(thread0Ctx);
+      PythonContextLock pl(threadCtx);
       learner.LearnIterations(10);
       learnIters++;
     }
   });
 
-  thread evalThread([&learner, &model, &learnIters, &thread1Ctx] {
+  thread evalThread([&learner, &model, &learnIters] {
+    PythonThreadContext threadCtx(PythonUtil::GlobalContext());
     vector<float> woo{1.0f, 5.0f, 6.0f, 3.2f, 10.0f};
 
-    int iters = 0;
+    unsigned iters = 0;
     while ((iters = learnIters.load()) < TOTAL_ITERS) {
-      PythonContextLock pl(thread1Ctx);
+      PythonContextLock pl(threadCtx);
 
-      auto p = learner.GetModelParams();
-      model.SetModelParams(p);
+      model.SetModelParams(learner.GetModelParams());
       std::cout << iters << ": "
                 << model.Inference(PythonUtil::ArrayFromVector(woo))
                 << std::endl;
@@ -55,13 +47,6 @@ int main(int argc, char **argv) {
 
   evalThread.join();
   learnThread.join();
-
-  // for (unsigned i = 0; i < 1000; i++) {
-  // learner.LearnIterations(10);
-  // model.SetModelParams(learner.GetModelParams());
-  // std::cout << model.Inference(PythonUtil::ArrayFromVector(woo)) <<
-  // std::endl; getchar();
-  // }
 
   std::cout << "bye world" << std::endl;
   return 0;

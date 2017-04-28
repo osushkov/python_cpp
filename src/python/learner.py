@@ -22,7 +22,6 @@ def makeBatch(batch_size, data_x, data_y):
 batch_size = 1000
 
 class Learner(LearnerInstance):
-# class Learner:
     def __init__(self):
         self.sess = None
         self.data_x, self.data_y = createSampleData(10000)
@@ -61,7 +60,3 @@ class Learner(LearnerInstance):
 
     def GetModelParams(self):
         return self.model_params
-
-
-# l = Learner()
-# l.LearnIterations(100)

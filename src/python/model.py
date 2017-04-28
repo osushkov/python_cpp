@@ -4,7 +4,6 @@ import tensorflow as tf
 
 
 class Model(ModelInstance):
-# class Model:
     def __init__(self, batch_size):
         self.batch_size = batch_size
         self.sess = None

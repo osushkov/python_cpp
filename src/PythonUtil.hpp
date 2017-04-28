@@ -1,4 +1,5 @@
 
+#include "PythonContext.hpp"
 #include <boost/python.hpp>
 #include <boost/python/numpy.hpp>
 #include <iostream>
@@ -10,9 +11,8 @@ namespace bp = boost::python;
 
 namespace PythonUtil {
 
+PythonMainContext& GlobalContext(void);
 void Initialise(void);
-bp::object &GetLearnerModule(void);
-bp::object &GetModelModule(void);
 
 bp::object Import(const std::string &module, const std::string &path,
                   bp::object &globals);

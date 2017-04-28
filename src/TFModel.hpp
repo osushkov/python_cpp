@@ -3,7 +3,6 @@
 #include "util/Common.hpp"
 #include <boost/python.hpp>
 #include <boost/python/numpy.hpp>
-#include <vector>
 
 namespace bp = boost::python;
 namespace np = boost::python::numpy;
@@ -14,7 +13,7 @@ public:
   virtual ~TFModel();
 
   np::ndarray Inference(const np::ndarray &input);
-  void SetModelParams(bp::object params);
+  void SetModelParams(const bp::object &params);
 
 private:
   struct TFModelImpl;

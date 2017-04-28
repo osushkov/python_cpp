@@ -1,5 +1,6 @@
 
 #include "PythonUtil.hpp"
+#include "util/Common.hpp"
 #include <boost/python.hpp>
 #include <boost/python/numpy.hpp>
 #include <boost/python/stl_iterator.hpp>
@@ -10,67 +11,10 @@
 using namespace std;
 
 static std::once_flag initialiseFlag;
-static bp::object learnerModule;
-static bp::object modelModule;
+static uptr<PythonMainContext> globalContext;
 
-class LearnerInstance {
-public:
-  LearnerInstance() = default;
-  virtual ~LearnerInstance() = default;
-
-  virtual void LearnIterations(unsigned iters) = 0;
-  virtual bp::object GetModelParams(void) = 0;
-};
-
-class PyLearnerInstance final : public LearnerInstance,
-                                public bp::wrapper<LearnerInstance> {
-public:
-  using LearnerInstance::LearnerInstance;
-
-  void LearnIterations(unsigned iters) override {
-    get_override("LearnIterations")(iters);
-  }
-
-  bp::object GetModelParams(void) override {
-    return get_override("GetModelParams")();
-  }
-};
-
-BOOST_PYTHON_MODULE(LearnerFramework) {
-  np::initialize();
-  bp::class_<PyLearnerInstance, boost::noncopyable>("LearnerInstance");
-}
-
-using ArrayList = vector<np::ndarray>;
-
-class ModelInstance {
-public:
-  virtual ~ModelInstance() = default;
-
-  virtual np::ndarray Inference(const np::ndarray &input) = 0;
-  virtual void SetModelParams(bp::object params) = 0;
-};
-
-class PyModelInstance final : public ModelInstance,
-                              public bp::wrapper<ModelInstance> {
-public:
-  using ModelInstance::ModelInstance;
-
-  np::ndarray Inference(const np::ndarray &input) {
-    return get_override("Inference")(input);
-  }
-
-  void SetModelParams(bp::object params) {
-    get_override("SetModelParams")(params);
-  }
-};
-
-BOOST_PYTHON_MODULE(ModelFramework) {
-  np::initialize();
-
-  // bp::class_<ArrayList>("ArrayList")
-  //     .def(bp::vector_indexing_suite<ArrayList>());
-  bp::class_<PyModelInstance, boost::noncopyable>("ModelInstance");
+PythonMainContext& PythonUtil::GlobalContext(void) {
+  return *globalContext;
 }
 
 void PythonUtil::Initialise(void) {
@@ -79,19 +23,9 @@ void PythonUtil::Initialise(void) {
     PyEval_InitThreads();
     np::initialize();
 
-    PyImport_AppendInittab("LearnerFramework", &initLearnerFramework);
-    PyImport_AppendInittab("ModelFramework", &initModelFramework);
-
-    bp::object main = bp::import("__main__");
-    bp::object globals = main.attr("__dict__");
-    learnerModule =
-        PythonUtil::Import("learner", "src/python/learner.py", globals);
-    modelModule = PythonUtil::Import("model", "src/python/model.py", globals);
+    globalContext = make_unique<PythonMainContext>();
   });
 }
-
-bp::object &PythonUtil::GetLearnerModule(void) { return learnerModule; }
-bp::object &PythonUtil::GetModelModule(void) { return modelModule; }
 
 bp::object PythonUtil::Import(const std::string &module,
                               const std::string &path, bp::object &globals) {
